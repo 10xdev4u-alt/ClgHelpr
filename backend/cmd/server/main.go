@@ -32,13 +32,26 @@ func main() {
 
 	// Initialize dependencies
 	userRepo := repository.NewPGUserRepository(dbPool)
+	subjectRepo := repository.NewPGSubjectRepository(dbPool)
+	staffRepo := repository.NewPGStaffRepository(dbPool)
+	venueRepo := repository.NewPGVenueRepository(dbPool)
+	slotRepo := repository.NewPGTimetableSlotRepository(dbPool)
+
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
+	timetableService := services.NewTimetableService(subjectRepo, staffRepo, venueRepo, slotRepo)
+
 	authHandler := handlers.NewAuthHandler(authService)
+	timetableHandler := handlers.NewTimetableHandler(timetableService)
 
 	// --- Public Routes ---
 	authRoutes := api.Group("/auth")
 	authRoutes.Post("/register", authHandler.RegisterUser)
 	authRoutes.Post("/login", authHandler.LoginUser)
+
+	// Timetable Public Routes (e.g., for dropdowns before login)
+	api.Get("/subjects", timetableHandler.GetAllSubjects)
+	api.Get("/staff", timetableHandler.GetAllStaff)
+	api.Get("/venues", timetableHandler.GetAllVenues)
 
 	// Base welcome route
 	api.Get("/", func(c *fiber.Ctx) error {
@@ -49,6 +62,15 @@ func main() {
 	protected := api.Group("/") // This group is now protected by the middleware
 	protected.Use(middleware.Protected(cfg.JWTSecret))
 	protected.Get("/me", authHandler.GetUserProfile)
+
+	// Timetable Protected Routes
+	timetableProtectedRoutes := protected.Group("/timetable")
+	timetableProtectedRoutes.Post("/subjects", timetableHandler.CreateSubject)
+	timetableProtectedRoutes.Post("/staff", timetableHandler.CreateStaff)
+	timetableProtectedRoutes.Post("/venues", timetableHandler.CreateVenue)
+	timetableProtectedRoutes.Post("/slots", timetableHandler.CreateTimetableSlot)
+	timetableProtectedRoutes.Get("/day/:dayOfWeek", timetableHandler.GetUserTimetableByDay)
+	timetableProtectedRoutes.Get("/range", timetableHandler.GetUserTimetableByDateRange)
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	log.Fatal(app.Listen(":" + cfg.Port))
