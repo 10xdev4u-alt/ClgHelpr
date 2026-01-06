@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [message, setMessage] = useState("Click the button to fetch from API.");
@@ -24,9 +25,16 @@ export default function Home() {
           <span className="text-xl font-bold">Campus Pilot</span>
         </a>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">
-            Login
-          </Button>
+          <Link href="/login">
+            <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">
+              Login
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              Register
+            </Button>
+          </Link>
         </nav>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
