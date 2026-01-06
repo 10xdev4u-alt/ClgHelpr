@@ -259,3 +259,47 @@ func (h *TimetableHandler) GetUserTimetableByDateRange(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(slots)
 }
+
+// ExportICSCalendar handles exporting a user's timetable as an ICS file.
+// @Summary Export timetable as ICS
+// @Description Export a user's timetable slots within a given date range as an iCalendar (.ics) file.
+// @Tags Timetable
+// @Produce text/calendar
+// @Security BearerAuth
+// @Param start query string true "Start date (YYYY-MM-DD)"
+// @Param end query string true "End date (YYYY-MM-DD)"
+// @Success 200 {string} string "iCalendar data"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /timetable/export-ics [get]
+func (h *TimetableHandler) ExportICSCalendar(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	startStr := c.Query("start")
+	endStr := c.Query("end")
+
+	start, err := time.Parse("2006-01-02", startStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid start date format. Use YYYY-MM-DD."})
+	}
+	end, err := time.Parse("2006-01-02", endStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid end date format. Use YYYY-MM-DD."})
+	}
+
+	// Adjust end date to include the whole day
+	end = end.Add(24*time.Hour - time.Nanosecond)
+
+	icsContent, err := h.timetableService.GenerateICSCalendar(context.Background(), userID, start, end)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate ICS calendar: " + err.Error()})
+	}
+
+	c.Set("Content-Type", "text/calendar")
+	c.Set("Content-Disposition", `attachment; filename="timetable.ics"`)
+	return c.SendString(icsContent)
+}

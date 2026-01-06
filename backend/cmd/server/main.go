@@ -71,6 +71,7 @@ func main() {
 	timetableProtectedRoutes.Post("/slots", timetableHandler.CreateTimetableSlot)
 	timetableProtectedRoutes.Get("/day/:dayOfWeek", timetableHandler.GetUserTimetableByDay)
 	timetableProtectedRoutes.Get("/range", timetableHandler.GetUserTimetableByDateRange)
+	timetableProtectedRoutes.Get("/export-ics", timetableHandler.ExportICSCalendar)
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	log.Fatal(app.Listen(":" + cfg.Port))
