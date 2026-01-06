@@ -10,6 +10,7 @@ const navItems = [
     { name: 'Exams', href: '/dashboard/exams' },
     { name: 'Important Questions', href: '/dashboard/important-questions' },
     { name: 'Lab Records', href: '/dashboard/lab-records' },
+    { name: 'Documents', href: '/dashboard/documents' },
     { name: 'Subjects', href: '/dashboard/subjects' },
     { name: 'Staff', href: '/dashboard/staff' },
     { name: 'Venues', href: '/dashboard/venues' },
