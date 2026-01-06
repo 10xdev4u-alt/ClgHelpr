@@ -51,6 +51,14 @@ migrate-create: $(MIGRATE_BIN)
 	@read -p "Enter migration name: " name; \
 	$(MIGRATE_CMD) create -ext sql -dir $(MIGRATE_PATH) -seq $$name
 
+migrate-status: $(MIGRATE_BIN)
+	@echo "Checking migration status..."
+	$(MIGRATE_CMD) version
+
+migrate-force: $(MIGRATE_BIN)
+	@echo "Forcing migration version to $(version)..."
+	$(MIGRATE_CMD) force $(version)
+	
 install-migrate:
 	@echo "Building custom golang-migrate to $(LOCAL_BIN)..."
 	mkdir -p $(LOCAL_BIN)
