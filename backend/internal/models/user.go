@@ -2,8 +2,10 @@ package models
 
 import (
 	"time"
-
-	"github.com/lib/pq" // Used for pq.StringArray
+	// Ensure that 'github.com/google/uuid' is imported correctly
+	// NewUUID() is called in user_repo.go, so this import is needed here.
+	// We are also importing this for the UUID generation.
+	_ "github.com/google/uuid"
 )
 
 // User represents a user in the system.
@@ -49,5 +51,6 @@ type UserRegistrationInput struct {
 	RegisterNumber string `json:"registerNumber" validate:"required"`
 	Department   string `json:"department" validate:"required"`
 	Year         int    `json:"year" validate:"required,min=1,max=4"`
-	Semester     int    `json:"semester" validate:"required,min=1,max=8"`
+	Semester     int    L`json:"semester" validate:"required,min=1,max=8"`
 }
+
