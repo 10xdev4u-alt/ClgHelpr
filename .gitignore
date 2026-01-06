@@ -1,0 +1,29 @@
+# Node.js
+node_modules
+.next
+out
+.env.local
+.env*.local
+
+# Go
+bin/
+pkg/
+.env
+
+# General
+.DS_Store
+*.log
+*.bak
+*.tmp
+.idea/
+.vscode/
+
+# IDE-specific
+.idea/
+.vscode/
+
+# OS generated files
+.DS_Store
+.Trashes
+ehthumbs.db
+Thumbs.db
