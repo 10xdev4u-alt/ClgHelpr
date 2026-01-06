@@ -30,195 +30,225 @@ func main() {
 
 	api := app.Group("/api")
 
-		// Initialize dependencies
+			// Initialize dependencies
 
-		userRepo := repository.NewPGUserRepository(dbPool)
+			userRepo := repository.NewPGUserRepository(dbPool)
 
-		subjectRepo := repository.NewPGSubjectRepository(dbPool)
+			subjectRepo := repository.NewPGSubjectRepository(dbPool)
 
-		staffRepo := repository.NewPGStaffRepository(dbPool)
+			staffRepo := repository.NewPGStaffRepository(dbPool)
 
-		venueRepo := repository.NewPGVenueRepository(dbPool)
+			venueRepo := repository.NewPGVenueRepository(dbPool)
 
-		slotRepo := repository.NewPGTimetableSlotRepository(dbPool)
+			slotRepo := repository.NewPGTimetableSlotRepository(dbPool)
 
-		assignmentRepo := repository.NewPGAssignmentRepository(dbPool)
+			assignmentRepo := repository.NewPGAssignmentRepository(dbPool)
 
-		examRepo := repository.NewPGExamRepository(dbPool)
+			examRepo := repository.NewPGExamRepository(dbPool)
 
-		importantQuestionRepo := repository.NewPGImportantQuestionRepository(dbPool)
+			importantQuestionRepo := repository.NewPGImportantQuestionRepository(dbPool)
 
-		labRecordRepo := repository.NewPGLabRecordRepository(dbPool)
+			labRecordRepo := repository.NewPGLabRecordRepository(dbPool)
 
-	
-
-		authService := services.NewAuthService(userRepo, cfg.JWTSecret)
-
-		timetableService := services.NewTimetableService(subjectRepo, staffRepo, venueRepo, slotRepo)
-
-		assignmentService := services.NewAssignmentService(assignmentRepo)
-
-		examService := services.NewExamService(examRepo, importantQuestionRepo)
-
-		labRecordService := services.NewLabRecordService(labRecordRepo)
-
-	
-
-		authHandler := handlers.NewAuthHandler(authService)
-
-		timetableHandler := handlers.NewTimetableHandler(timetableService)
-
-		assignmentHandler := handlers.NewAssignmentHandler(assignmentService)
-
-		examHandler := handlers.NewExamHandler(examService)
-
-		labRecordHandler := handlers.NewLabRecordHandler(labRecordService)
-
-	
-
-		// --- Public Routes ---
-
-		authRoutes := api.Group("/auth")
-
-		authRoutes.Post("/register", authHandler.RegisterUser)
-
-		authRoutes.Post("/login", authHandler.LoginUser)
-
-	
-
-		// Timetable Public Routes (e.g., for dropdowns before login)
-
-		api.Get("/subjects", timetableHandler.GetAllSubjects)
-
-		api.Get("/staff", timetableHandler.GetAllStaff)
-
-		api.Get("/venues", timetableHandler.GetAllVenues)
-
-	
-
-		// Base welcome route
-
-		api.Get("/", func(c *fiber.Ctx) error {
-
-			return c.JSON(fiber.Map{"message": "Welcome to the Campus Pilot API!"})
-
-		})
-
-	
-
-		// --- Protected Routes ---
-
-		protected := api.Group("/") // This group is now protected by the middleware
-
-		protected.Use(middleware.Protected(cfg.JWTSecret))
-
-		protected.Get("/me", authHandler.GetUserProfile)
-
-	
-
-		// Timetable Protected Routes
-
-		timetableProtectedRoutes := protected.Group("/timetable")
-
-		timetableProtectedRoutes.Post("/subjects", timetableHandler.CreateSubject)
-
-		timetableProtectedRoutes.Post("/staff", timetableHandler.CreateStaff)
-
-		timetableProtectedRoutes.Post("/venues", timetableHandler.CreateVenue)
-
-		timetableProtectedRoutes.Post("/slots", timetableHandler.CreateTimetableSlot)
-
-		timetableProtectedRoutes.Get("/day/:dayOfWeek", timetableHandler.GetUserTimetableByDay)
-
-		timetableProtectedRoutes.Get("/range", timetableHandler.GetUserTimetableByDateRange)
-
-		timetableProtectedRoutes.Get("/export-ics", timetableHandler.ExportICSCalendar)
-
-	
-
-		// Assignment Protected Routes
-
-		assignmentProtectedRoutes := protected.Group("/assignments")
-
-		assignmentProtectedRoutes.Post("/", assignmentHandler.CreateAssignment)
-
-		assignmentProtectedRoutes.Get("/", assignmentHandler.GetAssignments)
-
-		assignmentProtectedRoutes.Get("/pending", assignmentHandler.GetPendingAssignments)
-
-		assignmentProtectedRoutes.Get("/overdue", assignmentHandler.GetOverdueAssignments)
-
-		assignmentProtectedRoutes.Get("/:id", assignmentHandler.GetAssignmentByID)
-
-		assignmentProtectedRoutes.Put("/:id", assignmentHandler.UpdateAssignment)
-
-		assignmentProtectedRoutes.Patch("/:id/status", assignmentHandler.UpdateAssignmentStatus)
-
-		assignmentProtectedRoutes.Delete("/:id", assignmentHandler.DeleteAssignment)
-
-	
-
-		// Exam Protected Routes
-
-		examProtectedRoutes := protected.Group("/exams")
-
-		examProtectedRoutes.Post("/", examHandler.CreateExam)
-
-		examProtectedRoutes.Get("/", examHandler.GetExams)
-
-		examProtectedRoutes.Get("/upcoming", examHandler.GetUpcomingExams)
-
-		examProtectedRoutes.Get("/:id", examHandler.GetExamByID)
-
-		examProtectedRoutes.Put("/:id", examHandler.UpdateExam)
-
-		examProtectedRoutes.Patch("/:id/prep-status", examHandler.UpdateExamPrepStatus)
-
-		examProtectedRoutes.Delete("/:id", examHandler.DeleteExam)
+			documentRepo := repository.NewPGDocumentRepository(dbPool)
 
 		
 
-		importantQuestionProtectedRoutes := protected.Group("/important-questions")
+			authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 
-		importantQuestionProtectedRoutes.Post("/", examHandler.CreateImportantQuestion)
+			timetableService := services.NewTimetableService(subjectRepo, staffRepo, venueRepo, slotRepo)
 
-		importantQuestionProtectedRoutes.Get("/exam/:examId", examHandler.GetImportantQuestionsByExamID)
+			assignmentService := services.NewAssignmentService(assignmentRepo)
 
-		importantQuestionProtectedRoutes.Get("/subject/:subjectId", examHandler.GetImportantQuestionsBySubjectID)
+			examService := services.NewExamService(examRepo, importantQuestionRepo)
 
-		importantQuestionProtectedRoutes.Get("/:id", examHandler.GetImportantQuestionByID)
+			labRecordService := services.NewLabRecordService(labRecordRepo)
 
-		importantQuestionProtectedRoutes.Put("/:id", examHandler.UpdateImportantQuestion)
+			documentService := services.NewDocumentService(documentRepo)
 
-		importantQuestionProtectedRoutes.Delete("/:id", examHandler.DeleteImportantQuestion)
+		
 
-	
+			authHandler := handlers.NewAuthHandler(authService)
 
-		// Lab Record Protected Routes
+			timetableHandler := handlers.NewTimetableHandler(timetableService)
 
-		labRecordProtectedRoutes := protected.Group("/lab-records")
+			assignmentHandler := handlers.NewAssignmentHandler(assignmentService)
 
-		labRecordProtectedRoutes.Post("/", labRecordHandler.CreateLabRecord)
+			examHandler := handlers.NewExamHandler(examService)
 
-		labRecordProtectedRoutes.Get("/", labRecordHandler.GetLabRecords)
+			labRecordHandler := handlers.NewLabRecordHandler(labRecordService)
 
-		labRecordProtectedRoutes.Get("/subject/:subjectId", labRecordHandler.GetLabRecordsBySubjectID)
+			documentHandler := handlers.NewDocumentHandler(documentService)
 
-		labRecordProtectedRoutes.Get("/:id", labRecordHandler.GetLabRecordByID)
+		
 
-		labRecordProtectedRoutes.Put("/:id", labRecordHandler.UpdateLabRecord)
+			// --- Public Routes ---
 
-		labRecordProtectedRoutes.Patch("/:id/status", labRecordHandler.UpdateLabRecordStatus)
+			authRoutes := api.Group("/auth")
 
-		labRecordProtectedRoutes.Delete("/:id", labRecordHandler.DeleteLabRecord)
+			authRoutes.Post("/register", authHandler.RegisterUser)
 
-	
+			authRoutes.Post("/login", authHandler.LoginUser)
 
-	
+		
 
-		log.Printf("Starting server on port %s", cfg.Port)
+			// Timetable Public Routes (e.g., for dropdowns before login)
 
-		log.Fatal(app.Listen(":" + cfg.Port))
+			api.Get("/subjects", timetableHandler.GetAllSubjects)
+
+			api.Get("/staff", timetableHandler.GetAllStaff)
+
+			api.Get("/venues", timetableHandler.GetAllVenues)
+
+		
+
+			// Base welcome route
+
+			api.Get("/", func(c *fiber.Ctx) error {
+
+				return c.JSON(fiber.Map{"message": "Welcome to the Campus Pilot API!"})
+
+			})
+
+		
+
+			// --- Protected Routes ---
+
+			protected := api.Group("/") // This group is now protected by the middleware
+
+			protected.Use(middleware.Protected(cfg.JWTSecret))
+
+			protected.Get("/me", authHandler.GetUserProfile)
+
+		
+
+			// Timetable Protected Routes
+
+			timetableProtectedRoutes := protected.Group("/timetable")
+
+			timetableProtectedRoutes.Post("/subjects", timetableHandler.CreateSubject)
+
+			timetableProtectedRoutes.Post("/staff", timetableHandler.CreateStaff)
+
+			timetableProtectedRoutes.Post("/venues", timetableHandler.CreateVenue)
+
+			timetableProtectedRoutes.Post("/slots", timetableHandler.CreateTimetableSlot)
+
+			timetableProtectedRoutes.Get("/day/:dayOfWeek", timetableHandler.GetUserTimetableByDay)
+
+			timetableProtectedRoutes.Get("/range", timetableHandler.GetUserTimetableByDateRange)
+
+			timetableProtectedRoutes.Get("/export-ics", timetableHandler.ExportICSCalendar)
+
+		
+
+			// Assignment Protected Routes
+
+			assignmentProtectedRoutes := protected.Group("/assignments")
+
+			assignmentProtectedRoutes.Post("/", assignmentHandler.CreateAssignment)
+
+			assignmentProtectedRoutes.Get("/", assignmentHandler.GetAssignments)
+
+			assignmentProtectedRoutes.Get("/pending", assignmentHandler.GetPendingAssignments)
+
+			assignmentProtectedRoutes.Get("/overdue", assignmentHandler.GetOverdueAssignments)
+
+			assignmentProtectedRoutes.Get("/:id", assignmentHandler.GetAssignmentByID)
+
+			assignmentProtectedRoutes.Put("/:id", assignmentHandler.UpdateAssignment)
+
+			assignmentProtectedRoutes.Patch("/:id/status", assignmentHandler.UpdateAssignmentStatus)
+
+			assignmentProtectedRoutes.Delete("/:id", assignmentHandler.DeleteAssignment)
+
+		
+
+			// Exam Protected Routes
+
+			examProtectedRoutes := protected.Group("/exams")
+
+			examProtectedRoutes.Post("/", examHandler.CreateExam)
+
+			examProtectedRoutes.Get("/", examHandler.GetExams)
+
+			examProtectedRoutes.Get("/upcoming", examHandler.GetUpcomingExams)
+
+			examProtectedRoutes.Get("/:id", examHandler.GetExamByID)
+
+			examProtectedRoutes.Put("/:id", examHandler.UpdateExam)
+
+			examProtectedRoutes.Patch("/:id/prep-status", examHandler.UpdateExamPrepStatus)
+
+			examProtectedRoutes.Delete("/:id", examHandler.DeleteExam)
+
+			
+
+			importantQuestionProtectedRoutes := protected.Group("/important-questions")
+
+			importantQuestionProtectedRoutes.Post("/", examHandler.CreateImportantQuestion)
+
+			importantQuestionProtectedRoutes.Get("/exam/:examId", examHandler.GetImportantQuestionsByExamID)
+
+			importantQuestionProtectedRoutes.Get("/subject/:subjectId", examHandler.GetImportantQuestionsBySubjectID)
+
+			importantQuestionProtectedRoutes.Get("/:id", examHandler.GetImportantQuestionByID)
+
+			importantQuestionProtectedRoutes.Put("/:id", examHandler.UpdateImportantQuestion)
+
+			importantQuestionProtectedRoutes.Delete("/:id", examHandler.DeleteImportantQuestion)
+
+		
+
+			// Lab Record Protected Routes
+
+			labRecordProtectedRoutes := protected.Group("/lab-records")
+
+			labRecordProtectedRoutes.Post("/", labRecordHandler.CreateLabRecord)
+
+			labRecordProtectedRoutes.Get("/", labRecordHandler.GetLabRecords)
+
+			labRecordProtectedRoutes.Get("/subject/:subjectId", labRecordHandler.GetLabRecordsBySubjectID)
+
+			labRecordProtectedRoutes.Get("/:id", labRecordHandler.GetLabRecordByID)
+
+			labRecordProtectedRoutes.Put("/:id", labRecordHandler.UpdateLabRecord)
+
+			labRecordProtectedRoutes.Patch("/:id/status", labRecordHandler.UpdateLabRecordStatus)
+
+			labRecordProtectedRoutes.Delete("/:id", labRecordHandler.DeleteLabRecord)
+
+		
+
+			// Document Protected Routes
+
+			documentProtectedRoutes := protected.Group("/documents")
+
+			documentProtectedRoutes.Post("/", documentHandler.CreateDocument)
+
+			documentProtectedRoutes.Get("/", documentHandler.GetDocuments)
+
+			documentProtectedRoutes.Get("/subject/:subjectId", documentHandler.GetDocumentsBySubjectID)
+
+			documentProtectedRoutes.Get("/:id", documentHandler.GetDocumentByID)
+
+			documentProtectedRoutes.Put("/:id", documentHandler.UpdateDocument)
+
+			documentProtectedRoutes.Delete("/:id", documentHandler.DeleteDocument)
+
+			documentProtectedRoutes.Post("/:id/view", documentHandler.IncrementViewCount)
+
+			documentProtectedRoutes.Post("/:id/download-count", documentHandler.IncrementDownloadCount)
+
+		
+
+		
+
+			log.Printf("Starting server on port %s", cfg.Port)
+
+			log.Fatal(app.Listen(":" + cfg.Port))
+
+		
 
 	
 }
