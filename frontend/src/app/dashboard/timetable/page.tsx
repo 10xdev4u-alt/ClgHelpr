@@ -164,6 +164,45 @@ export default function TimetablePage() {
         }
     };
 
+    const handleExportICS = async () => {
+        setIsLoading(true);
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - startDate.getDay()); // Go to Sunday of current week
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6); // Go to Saturday of current week
+
+            const startStr = startDate.toISOString().split('T')[0];
+            const endStr = endDate.toISOString().split('T')[0];
+
+            const res = await fetch(`/api/timetable/export-ics?start=${startStr}&end=${endStr}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'timetable.ics';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                toast.success("Timetable exported as ICS!");
+            } else {
+                toast.error("Failed to export timetable as ICS.");
+            }
+        } catch (error) {
+            toast.error("An unexpected error occurred during ICS export.");
+            console.error("ICS export error:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const daysOfWeek = [
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
     ];
@@ -262,8 +301,11 @@ export default function TimetablePage() {
             </Card>
 
             <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
+                <CardHeader className="flex flex-row justify-between items-center">
                     <CardTitle className="text-white">Today's Timetable</CardTitle>
+                    <Button onClick={handleExportICS} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+                        Export Timetable (ICS)
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     {timetable.length === 0 ? (
