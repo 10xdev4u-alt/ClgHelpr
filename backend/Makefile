@@ -21,7 +21,7 @@ MIGRATE_PATH=database/migrations
 MIGRATE_BIN=$(LOCAL_BIN)/migrate
 MIGRATE_CMD=$(MIGRATE_BIN) -database "$(DB_URL)" -path $(MIGRATE_PATH)
 
-.PHONY: all test clean build run migrate-up migrate-down migrate-create migrate-status install-migrate
+.PHONY: all test clean build run migrate-up migrate-down migrate-create install-migrate
 
 all: build
 
@@ -51,14 +51,10 @@ migrate-create: $(MIGRATE_BIN)
 	@read -p "Enter migration name: " name; \
 	$(MIGRATE_CMD) create -ext sql -dir $(MIGRATE_PATH) -seq $$name
 
-migrate-status: $(MIGRATE_BIN)
-	@echo "Checking migration status..."
-	$(MIGRATE_CMD) version
-	
 install-migrate:
-	@echo "Installing golang-migrate to $(LOCAL_BIN)..."
+	@echo "Building custom golang-migrate to $(LOCAL_BIN)..."
 	mkdir -p $(LOCAL_BIN)
-	GOBIN=$(LOCAL_BIN) $(GOINSTALL) github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	$(GOBUILD) -tags 'postgres' -o $(MIGRATE_BIN) github.com/golang-migrate/migrate/v4/cmd/migrate
 
 $(MIGRATE_BIN):
 	$(MAKE) install-migrate
