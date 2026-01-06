@@ -11,6 +11,7 @@ const navItems = [
     { name: 'Important Questions', href: '/dashboard/important-questions' },
     { name: 'Lab Records', href: '/dashboard/lab-records' },
     { name: 'Documents', href: '/dashboard/documents' },
+    { name: 'Study Plans', href: '/dashboard/study' },
     { name: 'Subjects', href: '/dashboard/subjects' },
     { name: 'Staff', href: '/dashboard/staff' },
     { name: 'Venues', href: '/dashboard/venues' },
