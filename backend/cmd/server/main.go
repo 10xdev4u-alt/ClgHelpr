@@ -37,14 +37,18 @@ func main() {
 	venueRepo := repository.NewPGVenueRepository(dbPool)
 	slotRepo := repository.NewPGTimetableSlotRepository(dbPool)
 	assignmentRepo := repository.NewPGAssignmentRepository(dbPool)
+	examRepo := repository.NewPGExamRepository(dbPool)
+	importantQuestionRepo := repository.NewPGImportantQuestionRepository(dbPool)
 
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 	timetableService := services.NewTimetableService(subjectRepo, staffRepo, venueRepo, slotRepo)
 	assignmentService := services.NewAssignmentService(assignmentRepo)
+	examService := services.NewExamService(examRepo, importantQuestionRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	timetableHandler := handlers.NewTimetableHandler(timetableService)
 	assignmentHandler := handlers.NewAssignmentHandler(assignmentService)
+	examHandler := handlers.NewExamHandler(examService)
 
 	// --- Public Routes ---
 	authRoutes := api.Group("/auth")
@@ -87,6 +91,24 @@ func main() {
 	assignmentProtectedRoutes.Patch("/:id/status", assignmentHandler.UpdateAssignmentStatus)
 	assignmentProtectedRoutes.Delete("/:id", assignmentHandler.DeleteAssignment)
 
+	// Exam Protected Routes
+	examProtectedRoutes := protected.Group("/exams")
+	examProtectedRoutes.Post("/", examHandler.CreateExam)
+	examProtectedRoutes.Get("/", examHandler.GetExams)
+	examProtectedRoutes.Get("/upcoming", examHandler.GetUpcomingExams)
+	examProtectedRoutes.Get("/:id", examHandler.GetExamByID)
+	examProtectedRoutes.Put("/:id", examHandler.UpdateExam)
+	examProtectedRoutes.Patch("/:id/prep-status", examHandler.UpdateExamPrepStatus)
+	examProtectedRoutes.Delete("/:id", examHandler.DeleteExam)
+	
+	importantQuestionProtectedRoutes := protected.Group("/important-questions")
+	importantQuestionProtectedRoutes.Post("/", examHandler.CreateImportantQuestion)
+	importantQuestionProtectedRoutes.Get("/exam/:examId", examHandler.GetImportantQuestionsByExamID)
+	importantQuestionProtectedRoutes.Get("/subject/:subjectId", examHandler.GetImportantQuestionsBySubjectID)
+	importantQuestionProtectedRoutes.Get("/:id", examHandler.GetImportantQuestionByID)
+	importantQuestionProtectedRoutes.Put("/:id", examHandler.UpdateImportantQuestion)
+	importantQuestionProtectedRoutes.Delete("/:id", examHandler.DeleteImportantQuestion)
+	
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	log.Fatal(app.Listen(":" + cfg.Port))
