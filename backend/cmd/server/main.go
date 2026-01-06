@@ -36,12 +36,15 @@ func main() {
 	staffRepo := repository.NewPGStaffRepository(dbPool)
 	venueRepo := repository.NewPGVenueRepository(dbPool)
 	slotRepo := repository.NewPGTimetableSlotRepository(dbPool)
+	assignmentRepo := repository.NewPGAssignmentRepository(dbPool)
 
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 	timetableService := services.NewTimetableService(subjectRepo, staffRepo, venueRepo, slotRepo)
+	assignmentService := services.NewAssignmentService(assignmentRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	timetableHandler := handlers.NewTimetableHandler(timetableService)
+	assignmentHandler := handlers.NewAssignmentHandler(assignmentService)
 
 	// --- Public Routes ---
 	authRoutes := api.Group("/auth")
@@ -72,6 +75,18 @@ func main() {
 	timetableProtectedRoutes.Get("/day/:dayOfWeek", timetableHandler.GetUserTimetableByDay)
 	timetableProtectedRoutes.Get("/range", timetableHandler.GetUserTimetableByDateRange)
 	timetableProtectedRoutes.Get("/export-ics", timetableHandler.ExportICSCalendar)
+
+	// Assignment Protected Routes
+	assignmentProtectedRoutes := protected.Group("/assignments")
+	assignmentProtectedRoutes.Post("/", assignmentHandler.CreateAssignment)
+	assignmentProtectedRoutes.Get("/", assignmentHandler.GetAssignments)
+	assignmentProtectedRoutes.Get("/pending", assignmentHandler.GetPendingAssignments)
+	assignmentProtectedRoutes.Get("/overdue", assignmentHandler.GetOverdueAssignments)
+	assignmentProtectedRoutes.Get("/:id", assignmentHandler.GetAssignmentByID)
+	assignmentProtectedRoutes.Put("/:id", assignmentHandler.UpdateAssignment)
+	assignmentProtectedRoutes.Patch("/:id/status", assignmentHandler.UpdateAssignmentStatus)
+	assignmentProtectedRoutes.Delete("/:id", assignmentHandler.DeleteAssignment)
+
 
 	log.Printf("Starting server on port %s", cfg.Port)
 	log.Fatal(app.Listen(":" + cfg.Port))
