@@ -56,3 +56,36 @@ func (h *AuthHandler) RegisterUser(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(user)
 }
+
+// LoginUser handles user login.
+// @Summary Log in a user
+// @Description Log in a user with email and password to receive a JWT token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param credentials body models.LoginUserInput true "User login credentials"
+// @Success 200 {object} map[string]string "JWT token"
+// @Failure 400 {object} map[string]string "Invalid input"
+// @Failure 401 {object} map[string]string "Invalid credentials"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /auth/login [post]
+func (h *AuthHandler) LoginUser(c *fiber.Ctx) error {
+	var input models.LoginUserInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if err := h.validator.Struct(input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	token, err := h.authService.Login(context.Background(), &input)
+	if err != nil {
+		if err.Error() == "invalid credentials" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
+}

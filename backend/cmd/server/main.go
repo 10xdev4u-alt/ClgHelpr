@@ -32,12 +32,13 @@ func main() {
 
 	// Initialize repositories, services, and handlers
 	userRepo := repository.NewPGUserRepository(dbPool)
-	authService := services.NewAuthService(userRepo)
+	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(authService)
 
 	// Auth Routes
 	authRoutes := api.Group("/auth")
 	authRoutes.Post("/register", authHandler.RegisterUser)
+	authRoutes.Post("/login", authHandler.LoginUser)
 
 	// Base API route
 	api.Get("/", func(c *fiber.Ctx) error {

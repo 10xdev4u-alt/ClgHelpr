@@ -4,30 +4,38 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/princetheprogrammer/campus-pilot/backend/internal/models"
 	"github.com/princetheprogrammer/campus-pilot/backend/internal/repository"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/jackc/pgx/v5" // Correct import for pgx.ErrNoRows
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5"
 )
 
 // AuthService defines the interface for authentication-related business logic.
 type AuthService interface {
 	RegisterUser(ctx context.Context, input *models.UserRegistrationInput) (*models.User, error)
+	Login(ctx context.Context, input *models.LoginUserInput) (string, error)
 }
 
 // authService implements AuthService.
 type authService struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
+	jwtSecret string
 }
 
 // NewAuthService creates a new authentication service.
-func NewAuthService(userRepo repository.UserRepository) AuthService {
-	return &authService{userRepo: userRepo}
+func NewAuthService(userRepo repository.UserRepository, jwtSecret string) AuthService {
+	return &authService{
+		userRepo:  userRepo,
+		jwtSecret: jwtSecret,
+	}
 }
 
 // RegisterUser handles the user registration process.
 func (s *authService) RegisterUser(ctx context.Context, input *models.UserRegistrationInput) (*models.User, error) {
+	// ... (existing RegisterUser code)
 	// Check if user with this email already exists
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, input.Email)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) { // Corrected check for no rows
@@ -54,16 +62,41 @@ func (s *authService) RegisterUser(ctx context.Context, input *models.UserRegist
 		Semester:        &input.Semester, // Pointer to int
 		IsActive:        true,
 		IsVerified:      false,
-		// Default values for other fields will be set in the repository CreateUser method
 	}
 
-	// Save user to database
 	if err := s.userRepo.CreateUser(ctx, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
-
-	// For security, clear the password hash before returning the user object
 	user.PasswordHash = ""
-
 	return user, nil
+}
+
+// Login handles the user login process.
+func (s *authService) Login(ctx context.Context, input *models.LoginUserInput) (string, error) {
+	user, err := s.userRepo.GetUserByEmail(ctx, input.Email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", errors.New("invalid credentials")
+		}
+		return "", fmt.Errorf("failed to get user: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password))
+	if err != nil {
+		return "", errors.New("invalid credentials")
+	}
+
+	// Create JWT token
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(), // Token expires in 7 days
+		"iat": time.Now().Unix(),
+	})
+
+	token, err := claims.SignedString([]byte(s.jwtSecret))
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return token, nil
 }

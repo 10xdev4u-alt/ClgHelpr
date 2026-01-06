@@ -6,6 +6,7 @@ import "github.com/spf13/viper"
 type Config struct {
 	DatabaseURL string `mapstructure:"DATABASE_URL"`
 	Port        string `mapstructure:"PORT"`
+	JWTSecret   string `mapstructure:"JWT_SECRET"`
 }
 
 // LoadConfig loads configuration from a .env file and environment variables.
