@@ -1,8 +1,22 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 
 export default function Home() {
+  const [message, setMessage] = useState("Click the button to fetch from API.");
+
+  const fetchApi = async () => {
+    try {
+      const res = await fetch("/api");
+      const data = await res.json();
+      setMessage(data.message || "No message found.");
+    } catch (error) {
+      setMessage("Failed to fetch from API.");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <header className="px-4 lg:px-6 h-14 flex items-center bg-gray-800/40 border-b border-gray-700">
@@ -24,6 +38,10 @@ export default function Home() {
             Never miss a deadline, lose a note, or feel unprepared again.
             Welcome to the future of college management.
           </p>
+          <div className="space-y-2 pt-4">
+            <Button onClick={fetchApi}>Fetch Welcome Message</Button>
+            <p className="text-sm text-gray-500 italic">{message}</p>
+          </div>
         </div>
       </main>
       <footer className="flex items-center justify-center p-4 bg-gray-800/40 border-t border-gray-700">
