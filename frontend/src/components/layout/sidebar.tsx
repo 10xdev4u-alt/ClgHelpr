@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils'; // For conditional class names
 const navItems = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Assignments', href: '/dashboard/assignments' },
+    { name: 'Exams', href: '/dashboard/exams' },
+    { name: 'Important Questions', href: '/dashboard/important-questions' },
     { name: 'Subjects', href: '/dashboard/subjects' },
     { name: 'Staff', href: '/dashboard/staff' },
     { name: 'Venues', href: '/dashboard/venues' },
