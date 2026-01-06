@@ -51,6 +51,6 @@ type UserRegistrationInput struct {
 	RegisterNumber string `json:"registerNumber" validate:"required"`
 	Department   string `json:"department" validate:"required"`
 	Year         int    `json:"year" validate:"required,min=1,max=4"`
-	Semester     int    L`json:"semester" validate:"required,min=1,max=8"`
+	Semester     int    `json:"semester" validate:"required,min=1,max=8"`
 }
 
