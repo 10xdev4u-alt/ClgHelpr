@@ -72,10 +72,10 @@ INSERT INTO users (id, email, password_hash, full_name, register_number, departm
 -- Monday (Day 1)
 INSERT INTO timetable_slots (id, user_id, subject_id, staff_id, venue_id, day_of_week, start_time, end_time, period_number, slot_type, is_recurring, is_active) VALUES
 (uuid_generate_v4(), (SELECT prince_id FROM user_uuid), (SELECT es_id FROM subject_uuids), (SELECT vijayanand_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '08:30:00', '09:20:00', 1, 'lecture', TRUE, TRUE),
-(uuid_generate_v4(), (SELECT cd_id FROM subject_uuids), (SELECT banupriya_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '09:20:00', '10:10:00', 2, 'lecture', TRUE, TRUE),
-(uuid_generate_v4(), (SELECT iot_id FROM subject_uuids), (SELECT janarthanan_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '10:25:00', '11:15:00', 3, 'lecture', TRUE, TRUE),
-(uuid_generate_v4(), (SELECT eda_id FROM subject_uuids), (SELECT suriya_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '11:15:00', '12:05:00', 4, 'lecture', TRUE, TRUE),
-(uuid_generate_v4(), (SELECT cclab_id FROM subject_uuids), (SELECT raghuvaran_id FROM staff_uuids), (SELECT cse_lab1_id FROM venue_uuids), 1, '12:45:00', '15:15:00', 5, 'lab', TRUE, TRUE); -- Spans 3 periods
+(uuid_generate_v4(), (SELECT prince_id FROM user_uuid), (SELECT cd_id FROM subject_uuids), (SELECT banupriya_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '09:20:00', '10:10:00', 2, 'lecture', TRUE, TRUE),
+(uuid_generate_v4(), (SELECT prince_id FROM user_uuid), (SELECT iot_id FROM subject_uuids), (SELECT janarthanan_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '10:25:00', '11:15:00', 3, 'lecture', TRUE, TRUE),
+(uuid_generate_v4(), (SELECT prince_id FROM user_uuid), (SELECT eda_id FROM subject_uuids), (SELECT suriya_id FROM staff_uuids), (SELECT room401_id FROM venue_uuids), 1, '11:15:00', '12:05:00', 4, 'lecture', TRUE, TRUE),
+(uuid_generate_v4(), (SELECT prince_id FROM user_uuid), (SELECT cclab_id FROM subject_uuids), (SELECT raghuvaran_id FROM staff_uuids), (SELECT cse_lab1_id FROM venue_uuids), 1, '12:45:00', '15:15:00', 5, 'lab', TRUE, TRUE); -- Spans 3 periods
 
 -- Drop temporary tables
 DROP TABLE subject_uuids;
