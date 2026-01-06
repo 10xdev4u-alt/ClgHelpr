@@ -89,3 +89,27 @@ func (h *AuthHandler) LoginUser(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
 }
+
+// GetUserProfile retrieves the profile of the currently authenticated user.
+// @Summary Get user profile
+// @Description Get the profile of the user corresponding to the provided JWT.
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} models.User "User profile"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /me [get]
+func (h *AuthHandler) GetUserProfile(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized: Invalid user ID in token"})
+	}
+
+	user, err := h.authService.GetUserProfile(context.Background(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve user profile"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(user)
+}

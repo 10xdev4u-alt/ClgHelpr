@@ -17,6 +17,7 @@ import (
 type AuthService interface {
 	RegisterUser(ctx context.Context, input *models.UserRegistrationInput) (*models.User, error)
 	Login(ctx context.Context, input *models.LoginUserInput) (string, error)
+	GetUserProfile(ctx context.Context, userID string) (*models.User, error)
 }
 
 // authService implements AuthService.
@@ -99,4 +100,16 @@ func (s *authService) Login(ctx context.Context, input *models.LoginUserInput) (
 	}
 
 	return token, nil
+}
+
+// GetUserProfile retrieves a user's profile.
+func (s *authService) GetUserProfile(ctx context.Context, userID string) (*models.User, error) {
+	user, err := s.userRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	// For security, clear the password hash before returning the user object
+	user.PasswordHash = ""
+	return user, nil
 }

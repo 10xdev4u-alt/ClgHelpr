@@ -27,17 +27,21 @@ func main() {
 
 	app := fiber.New()
 
+	// ... (imports)
+	"github.com/princetheprogrammer/campus-pilot/backend/internal/middleware"
+
+// ... (main function)
+
 	api := app.Group("/api")
 
-	// Initialize repositories, services, and handlers
-	userRepo := repository.NewPGUserRepository(dbPool)
-	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
-	authHandler := handlers.NewAuthHandler(authService)
-
-	// Auth Routes
+	// Public routes
 	authRoutes := api.Group("/auth")
 	authRoutes.Post("/register", authHandler.RegisterUser)
 	authRoutes.Post("/login", authHandler.LoginUser)
+
+	// Protected routes
+	protected := api.Group("/", middleware.Protected(cfg.JWTSecret))
+	protected.Get("/me", authHandler.GetUserProfile)
 
 	// Base API route
 	api.Get("/", func(c *fiber.Ctx) error {

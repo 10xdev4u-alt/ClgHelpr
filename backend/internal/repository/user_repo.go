@@ -4,14 +4,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/princetheprogrammer/campus-pilot/backend/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/princetheprogrammer/campus-pilot/backend/internal/models"
 )
 
 // UserRepository defines the interface for user data operations.
 type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetUserByID(ctx context.Context, id string) (*models.User, error)
 }
 
 // PGUserRepository implements UserRepository for PostgreSQL.
@@ -80,6 +81,32 @@ func (r *PGUserRepository) GetUserByEmail(ctx context.Context, email string) (*m
 	`
 	user := &models.User{}
 	err := r.db.QueryRow(ctx, query, email).Scan(
+		&user.ID, &user.Email, &user.PasswordHash, &user.FullName, &user.AvatarURL, &user.Phone,
+		&user.RegisterNumber, &user.Department, &user.Year, &user.Semester, &user.Section, &user.Batch, &user.IsHosteler,
+		&user.NotificationPreferences, &user.Theme, &user.Timezone,
+		&user.GoogleID, &user.GithubID,
+		&user.IsActive, &user.IsVerified, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// GetUserByID retrieves a user by their ID.
+func (r *PGUserRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
+	query := `
+		SELECT
+			id, email, password_hash, full_name, avatar_url, phone,
+			register_number, department, year, semester, section, batch, is_hosteler,
+			notification_preferences, theme, timezone,
+			google_id, github_id,
+			is_active, is_verified, last_login_at, created_at, updated_at
+		FROM users
+		WHERE id = $1
+	`
+	user := &models.User{}
+	err := r.db.QueryRow(ctx, query, id).Scan(
 		&user.ID, &user.Email, &user.PasswordHash, &user.FullName, &user.AvatarURL, &user.Phone,
 		&user.RegisterNumber, &user.Department, &user.Year, &user.Semester, &user.Section, &user.Batch, &user.IsHosteler,
 		&user.NotificationPreferences, &user.Theme, &user.Timezone,
